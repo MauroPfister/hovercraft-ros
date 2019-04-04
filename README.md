@@ -1,16 +1,22 @@
 # hovercraft-ros
 Development of ROS code for a small hovercraft
 
-
-# Startup Commands
-
-source ~/virtualenvs/venv_hovercraft_2.7/bin/activate
+Keep in mind that at this stage everything is very experimental and far from being easily usable.
 
 
-source devel/setup.bash
+# Getting started
 
+Activate the Python 2.7 virtual environment:
+`source ~/virtualenvs/venv_hovercraft_2.7/bin/activate`
 
-roslaunch vrpn_client_ros sample.launch server:=optitrack
+Navigate to the ROS workspace `hovercraft_ws` and source the setup file:
+`source devel/setup.bash`
 
-(venv_hovercraft_2.7) prabhat@prabhat-ROS:~/hovercraft_ws$ rosrun ground test_communication.py
+Launch the `vrpn_client_ros`:
+`roslaunch vrpn_client_ros sample.launch server:=optitrack`
 
+Launch the script to send PRBS commands to the hovercraft:
+`rosrun ground test_communication.py`
+
+To log the data sent to the hovercraft and the data from the tracking software:
+`rosrun ground logger.py`
