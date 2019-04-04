@@ -1,2 +1,9 @@
 /devel
 /build
+
+.catkin_workspace
+.gitignore~
+
+
+*.txt~
+*.md~
