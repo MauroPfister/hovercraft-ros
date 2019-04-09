@@ -25,7 +25,7 @@ class Controller(object):
 
 		# Open and read prbs file
 		self.prbs = []
-		with open('/home/prabhat/hovercraft_ws/src/ground/src/prbs','r') as f:
+		with open('prbs.csv','r') as f:
 			read = csv.reader(f)
 			for row in read:
 				self.prbs.append(row)
@@ -37,8 +37,8 @@ class Controller(object):
 		control_signal = PointStamped()
 
 		while not rospy.is_shutdown():
-			thrust_R = int(next(prbs) [0])
-			thrust_L = int(next(prbs) [1])
+			thrust_R = int(next(self.prbs) [0])
+			thrust_L = int(next(self.prbs) [1])
 			lift = 1.0
 			time =  rospy.Time.now()
 
