@@ -49,3 +49,24 @@ class Logger(object):
 if __name__ == "__main__":
     logger = Logger(os.path.dirname('/home/prabhat/hovercraft_ws/'))
     rospy.spin()
+
+
+
+
+
+"""
+
+with open('input.csv', 'w') as f:
+writer = csv.writer(f)		# Ugly way of logging data -> better use separate node
+
+while not rospy.is_shutdown():
+    self.motors.motor_R = int(next(prbs) [0])
+    self.motors.motor_L = int(next(prbs) [1])
+
+    self.sendToMotors()
+    data = [rospy.get_time(), self.motors.motor_R, self.motors.motor_L]
+    #print(rospy.get_time())
+    writer.writerow(data)
+    self.rate.sleep()
+
+"""
