@@ -16,12 +16,14 @@ class Controller(object):
 	Generates motor control and sends them to the hovercraft
 	"""
 
-	def __init__(self, controller_rate=10):
+	def __init__(self, controller_freq=10):
 
 		# Start up rospy node
 		rospy.init_node('controller', anonymous=True)
 		self.pub = rospy.Publisher('controls', PointStamped, queue_size=10)
-		self.rate = rospy.Rate(controller_rate)	# 10 Hz
+
+		controller_freq = rospy.get_param('~controller_freq')
+		self.rate = rospy.Rate(controller_freq)	# 10 Hz
 
 		# Open and read prbs file
 		self.prbs = []

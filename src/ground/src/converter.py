@@ -16,7 +16,7 @@ class Converter(object):
         - yaw angle
     """
 
-    def __init__(self, path):
+    def __init__(self):
 
         rospy.init_node('converter', anonymous=True)
         # Initialize ROS Subscriber

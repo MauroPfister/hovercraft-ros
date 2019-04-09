@@ -1,0 +1,19 @@
+<launch>
+
+    <!-- Data streaming from OptiTrack (192.168.1.100)-->
+    <include file="$(vrpn_client_ros)/launch/sample.launch">
+        <arg name="server" default="192.168.1.100" />
+    </include>
+
+    <!-- Convert pose from OptiTrack and write into new topic-->
+    <node name="converter" pkg="ground" type="converter" />
+
+    <!-- Communication with hovercraft-->
+    <node name="sender" pkg="ground" type="sender" />
+
+    <!-- Controller-->
+    <node name="controller" pkg="ground" type="controller">
+        <param name="controller_freq" default="10" />
+    <node/>
+
+</launch>
