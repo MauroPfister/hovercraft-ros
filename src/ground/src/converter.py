@@ -25,20 +25,19 @@ class Converter(object):
 
     def callback(self, data):
 
-		pose = PointStamped()
+        pose = PointStamped()
 
         # Process pose
         timeStamp = data.header.stamp
         pos = data.pose.position
         quat = data.pose.orientation
         euler = tf.transformations.euler_from_quaternion([quat.x, quat.y, quat.z, quat.w], axes='syzx')
-      
+        
         pose.header.stamp = timeStamp
         pose.point.x = pos.z
         pose.point.y = pos.x
         pose.point.z = euler[0]
-
-        self.pub(pose)
+        self.pub.publish(pose)
 
 if __name__ == "__main__":
     converter = Converter()

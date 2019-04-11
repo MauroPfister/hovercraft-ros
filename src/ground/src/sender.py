@@ -22,7 +22,7 @@ class Sender(object):
 
 		# Try to connect to hovercraft
 		print("Connecting to hovercraft ...")
-		_ , self.remote_address = ground.recvfrom(1024)
+		_ , self.remote_address = self.ground.recvfrom(1024)
 		
 		if (self.remote_address != 0):
 			print("Connected successfully")
@@ -45,28 +45,28 @@ class Sender(object):
 		self.armed = True
 
 
-    def callback(self, controls):
-        """ Convert controls to real motor inputs
+	def callback(self, controls):
+		""" Convert controls to real motor inputs
 			controls[0] = right thruster
 			controls[1] = left thruster
 			controls[2] = lift
 		"""
 
-        # Make sure controls are in valid interval
+		# Make sure controls are in valid interval
 		thrust_R = min(max(controls.point.x, 0), 1)
 		thrust_L = min(max(controls.point.y, 0), 1)
 		lift = min(max(controls.point.z, 0), 1)
 
-		# Scale to motor inputs
+		# Scale to motor inputs
 		self.motors.motor_R = int(1000 + thrust_R * 1000)
 		self.motors.motor_L = int(1000 + thrust_L * 1000)
 
 		self.motors.motor_DR = int(1000 + lift * 1000)
 		self.motors.motor_DL = self.motors.motor_DR
 
-        # Send controls to motor
-		# Should use basic command from console to arm and disarm hovercraft
-		if (self.armed == True)
+		# Send controls to motor
+		# Should use basic command from console to arm and disarm hovercraft
+		if (self.armed == True):
 			self.sendToMotors()
 
 	def sendToMotors(self):
@@ -82,4 +82,4 @@ class Sender(object):
 
 if __name__ == "__main__":
 	sender = Sender()
-    rospy.spin()
+	rospy.spin()

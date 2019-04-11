@@ -1,6 +1,7 @@
 # ROS folder and files
 /devel
 /build
+/bagfiles
 .catkin_workspace
 
 # Linux backup files

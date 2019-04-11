@@ -2,6 +2,7 @@
 
 import socket
 import sys
+import os
 import math
 import rospy
 import csv
@@ -26,8 +27,12 @@ class Controller(object):
 		self.rate = rospy.Rate(controller_freq)	# 10 Hz
 
 		# Open and read prbs file
+
+		
+		prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'prbs.csv')
+		
 		self.prbs = []
-		with open('prbs.csv','r') as f:
+		with open(prbs_path,'r') as f:
 			read = csv.reader(f)
 			for row in read:
 				self.prbs.append(row)
@@ -39,6 +44,7 @@ class Controller(object):
 		control_signal = PointStamped()
 
 		while not rospy.is_shutdown():
+			# Should check if prbs is finished....
 			thrust_R = int(next(self.prbs) [0])
 			thrust_L = int(next(self.prbs) [1])
 			lift = 1.0
