@@ -45,14 +45,15 @@ class Controller(object):
 
 		while not rospy.is_shutdown():
 			# Should check if prbs is finished....
-			thrust_R = int(next(self.prbs) [0])
-			thrust_L = int(next(self.prbs) [1])
+			thrust = next(self.prbs)
+			thrust_L = int(thrust[0])
+			thrust_R = int(thrust[1])
 			lift = 1.0
 			time =  rospy.Time.now()
 
 			control_signal.header.stamp = time
-			control_signal.point.x = thrust_R
-			control_signal.point.y = thrust_L
+			control_signal.point.x = thrust_L
+			control_signal.point.y = thrust_R
 			control_signal.point.z = lift
 
 			self.pub.publish(control_signal)

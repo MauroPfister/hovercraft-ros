@@ -2,6 +2,7 @@
 /devel
 /build
 /bagfiles
+/bagfiles_archive
 .catkin_workspace
 
 # Linux backup files

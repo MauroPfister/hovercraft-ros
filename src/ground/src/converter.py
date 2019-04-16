@@ -3,6 +3,7 @@
 import os
 import csv
 
+import math
 import rospy
 from std_msgs.msg import String
 import tf.transformations
@@ -34,9 +35,9 @@ class Converter(object):
         euler = tf.transformations.euler_from_quaternion([quat.x, quat.y, quat.z, quat.w], axes='syzx')
         
         pose.header.stamp = timeStamp
-        pose.point.x = pos.z
-        pose.point.y = pos.x
-        pose.point.z = euler[0]
+        pose.point.x = - pos.x
+        pose.point.y = - pos.z
+        pose.point.z = - euler[0]
         self.pub.publish(pose)
 
 if __name__ == "__main__":

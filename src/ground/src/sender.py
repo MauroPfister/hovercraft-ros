@@ -53,13 +53,13 @@ class Sender(object):
 		"""
 
 		# Make sure controls are in valid interval
-		thrust_R = min(max(controls.point.x, 0), 1)
-		thrust_L = min(max(controls.point.y, 0), 1)
+		thrust_L = min(max(controls.point.x, 0), 1)
+		thrust_R = min(max(controls.point.y, 0), 1)
 		lift = min(max(controls.point.z, 0), 1)
 
 		# Scale to motor inputs
-		self.motors.motor_R = int(1000 + thrust_R * 1000)
 		self.motors.motor_L = int(1000 + thrust_L * 1000)
+		self.motors.motor_R = int(1000 + thrust_R * 1000)
 
 		self.motors.motor_DR = int(1000 + lift * 1000)
 		self.motors.motor_DL = self.motors.motor_DR
