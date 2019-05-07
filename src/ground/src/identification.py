@@ -9,16 +9,16 @@ import tf
 from geometry_msgs.msg import PointStamped
 
 
-class Controller(object):
-	""" Trajectory tracking controller for a TinyWhoover hovercraft """
+class Identification(object):
+	""" Generating identification data for a TinyWhoover hovercraft """
 
-	def __init__(self, controller_freq=10):
+	def __init__(self, identification_freq=10):
 
 		# Start up rospy node
 		self.pub = rospy.Publisher('controls', PointStamped, queue_size=10)
 
-		controller_freq = rospy.get_param('~controller_freq')
-		self.rate = rospy.Rate(controller_freq)	# 10 Hz
+		identification_freq = rospy.get_param('~identification_freq')
+		self.rate = rospy.Rate(identification_freq)	# 10 Hz
 
 		# Open and read prbs file
 		prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'prbs.csv')
@@ -31,7 +31,7 @@ class Controller(object):
 
 		self.prbs = iter(self.prbs)
 
-	def identification(self):
+	def run(self):
 		""" Simple prbs identification procedure """
 
 		control_signal = PointStamped()
@@ -53,7 +53,7 @@ class Controller(object):
 			self.rate.sleep()
 		
 if __name__ == "__main__":
-	rospy.init_node('trajectory_controller', anonymous=True)
+	rospy.init_node('identification', anonymous=True)
 
-	controller = Controller(10)
-	controller.identification()
+	ident = Identification(10)
+	ident.run()
