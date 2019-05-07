@@ -16,16 +16,16 @@ class Sender(object):
 
 		# Set up ground socket
 		self.ground = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.ground_address = ground_address = ('0.0.0.0', 3333)
-		print('Starting up on %s port %s' % ground_address)
-		self.ground.bind(ground_address)
+		self.ground_address = ('0.0.0.0', 3333)
+		print('Starting up on %s port %s' % self.ground_address)
+		self.ground.bind(self.ground_address)
 
 		# Try to connect to hovercraft
 		print("Connecting to hovercraft ...")
 		_ , self.remote_address = self.ground.recvfrom(1024)
 		
 		if (self.remote_address != 0):
-			print("Connected successfully")
+			print("Connected successfully. Hovercraft address is %s" % self.remote_address[0])
 		else:
 			print("Could not connect to hovercraft")
 			# Shut down script --> How?
