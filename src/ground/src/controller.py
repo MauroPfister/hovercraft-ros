@@ -47,7 +47,7 @@ class Controller():
 		# getting initial time
 		self._t0 = None
 
-	def set_start_time(self, t0):	
+	def set_start_time(self):	
 		self._t0 = rospy.Time.now()
 
 	def circle(self, t):
@@ -64,13 +64,17 @@ class Controller():
 		return pos, vel, acc, jerk
 
 
-	def _get_transform(self, target_frame, source_frame):
-		""" This function gets the current transform between target_frame and source_frame """
+	def _get_transform(self, world_frame, drone_frame):
+		""" This function gets the current position and velocity (expressed in drone_frame)
+			of drone_frame in world_frame"""
+		refpoint = (0,0,0)
+		self._listener.waitForTransform(world_frame, drone_frame, rospy.Time(0), rospy.Duration(1.0))
+		trans, rot = self._listener.lookupTransform(world_frame, drone_frame, rospy.Time(0))	# get latest transform
+		trans_vel, rot_vel = self._listener.lookupTwistFull(drone_frame, world_frame, world_frame, refpoint
+										, drone_frame, rospy.Time(0), rospy.Duration(0.5))
+		rot_euler = tf.transformations.euler_from_quaternion(rot, axes='syzx')		# first rotation around y axis of world_frame
 
-		self._listener.waitForTransform(target_frame, source_frame, rospy.Time(0), rospy.Duration(1.0))
-		trans, rot = self._listener.lookupTransform(target_frame, source_frame, rospy.Time(0))	# get latest transform
-		twist = self._listener.lookupTwist(target_frame, source_frame, rospy.Time(0), rospy.Duration(0.1))
-		return trans, rot, twist
+		return trans, rot_euler, trans_vel, rot_vel
 
 	def _calculate_control(self, k_e, k_phi, k_z, delta, m, I_z, d_v, d_r, eta, nu, nu_d, p, p_d, p_dd, p_ddd):
 		""" Calculation of control output of trajectory tracking controller
@@ -122,24 +126,37 @@ class Controller():
 		# eta (position in world frame)
 		# nu (velocity in body frame)
 		# nu_d (acceleration in body frame) 
-		target_frame = "hovercraft"
-		source_frame = "world"
-		trans, rot, twist = self.get_transform(target_frame, source_frame)
+		world_frame = "world"
+		drone_frame = "hovercraft"
+		trans, rot, trans_vel, rot_vel = self._get_transform(world_frame, drone_frame)
 
+		"""
+		print('--------')
 		print('trans :', trans)
-		print('rot :', rot)
-		print('twist :', twist)
+		print('rot :', 180 / np.pi * np.asarray(rot))
+		print('trans vel :', trans_vel)
+		print('rot vel :', 180 / np.pi * np.asarray(rot_vel))
+		print('--------')
+		"""
 
-		eta = np.array([trans.x, trans.y, rot.z])
-		nu = np.array([1.0, 2.0, 3.0])
+		eta = np.array([trans[0], trans[2], rot[0]])
+		nu = np.array([trans_vel[0], trans_vel[1], -rot_vel[2]])
 		nu_d = np.zeros(3)
 
-		t = (rospy.Time.now() - self._t0).to_sec()
+
+		print('--------')
+		print('eta :', eta)
+		print('nu :', nu)
+		print('nu_d :', nu_d)
+		print('--------')
+
 
 		# calculate trajectory at current time
+		t = (rospy.Time.now() - self._t0).to_sec()
 		p, p_d, p_dd, p_ddd = self.circle(t)
 
-		u_1, u_2 = self._calculate_control(self, self.k_e, self.k_phi, self.k_z, self.delta, 
+		# calculate control output
+		u_1, u_2 = self._calculate_control(self.k_e, self.k_phi, self.k_z, self.delta, 
 											self.m, self.I_z, self.d_v, self.d_r, 
 											eta, nu, nu_d, p, p_d, p_dd, p_ddd)
 
@@ -168,7 +185,9 @@ if __name__ == "__main__":
 	delta = 0.03 * np.array([0.1, 0.1]) 
 
 	controller = Controller(k_e, k_phi, k_z, delta)
+	rospy.loginfo('Initialize controller ...')
 	rospy.sleep(5.0)	# ensure that the tf listener has time to receive 5s of data
+	rospy.loginfo('Start trajectory tracking ...')
 	controller.set_start_time()		# set starttime to current time 
 	#controller_freq = rospy.get_param('~controller_freq')
 	rate = rospy.Rate(10)	# 10 Hz
