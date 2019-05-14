@@ -22,7 +22,7 @@ class Controller():
 
 		# those coefficients are some wild ass guesses ....
 		self.d_v = 0.05		# linear damping coefficient
-		self.d_r = 0.00001	# rotational damping coefficient
+		self.d_r = 0.0001	# rotational damping coefficient
 
 		self.k = 0.08		# conversion coefficient (should probably depend quadratically on speed...)
 		self.l = 0.0325		# lever arm of thrusters
@@ -63,6 +63,31 @@ class Controller():
 
 		return pos, vel, acc, jerk
 
+	def line(self, t):
+		""" Definition of linear trajectory """
+		p0 = np.array([-0.0, -0.0])
+		p1 = np.array([3.0, 2.0])
+		pos = p0*(1 - t/10) + t/10*p1
+		vel = (p1 - p0)/10
+		acc = np.zeros(2)
+		jerk = np.zeros(2)
+
+		if (t > 10):
+			pos = pos * 0
+			vel = vel * 0
+			acc = acc * 0
+			jerk = jerk * 0
+
+		return pos, vel, acc, jerk
+
+	def rose_curve(self, t):
+		k = 3.0/2
+		pos = np.array([np.cos(k*t)*np.cos(t), np.cos(k*t)*np.sin(t)])
+		vel = np.array([-k*np.sin(k*t)*np.cos(t) - np.cos(k*t)*np.sin(t), -k*np.sin(k*t)*np.sin(t) + np.cos(k*t)*np.cos(t)])
+		acc = np.zeros(2)
+		jerk = np.zeros(2)
+
+		return pos, vel, acc, jerk
 
 	def _get_transform(self, world_frame, drone_frame):
 		""" This function gets the current position and velocity (expressed in drone_frame)
@@ -70,8 +95,8 @@ class Controller():
 		refpoint = (0,0,0)
 		self._listener.waitForTransform(world_frame, drone_frame, rospy.Time(0), rospy.Duration(1.0))
 		trans, rot = self._listener.lookupTransform(world_frame, drone_frame, rospy.Time(0))	# get latest transform
-		trans_vel, rot_vel = self._listener.lookupTwistFull(drone_frame, world_frame, world_frame, refpoint
-										, drone_frame, rospy.Time(0), rospy.Duration(0.5))
+		trans_vel, rot_vel = self._listener.lookupTwistFull(drone_frame, world_frame, drone_frame, refpoint
+										, drone_frame, rospy.Time(0), rospy.Duration(0.1))
 		rot_euler = tf.transformations.euler_from_quaternion(rot, axes='syzx')		# first rotation around y axis of world_frame
 
 		return trans, rot_euler, trans_vel, rot_vel
@@ -139,17 +164,18 @@ class Controller():
 		print('--------')
 		"""
 
-		eta = np.array([trans[0], trans[2], rot[0]])
-		nu = np.array([trans_vel[0], trans_vel[1], -rot_vel[2]])
+		eta = np.array([trans[0], trans[2], -rot[0]])
+		nu = np.array([trans_vel[0], trans_vel[1], -rot_vel[1]])
+		#nu = np.zeros(3)
 		nu_d = np.zeros(3)
 
-
+		"""
 		print('--------')
-		print('eta :', eta)
+		print('eta :', eta[0:2], 180/np.pi*eta[2])
 		print('nu :', nu)
 		print('nu_d :', nu_d)
 		print('--------')
-
+		"""
 
 		# calculate trajectory at current time
 		t = (rospy.Time.now() - self._t0).to_sec()
@@ -164,14 +190,16 @@ class Controller():
 		# conversion from forward and differential thrust (u_1, u_2) to each motor input (u_L, u_R)
 		# check this, really not sure!!!!!!!
 		# assumes linear relation ship between motor command and generated force by thruster
+		print(u_1, u_2)
 
-		u_L = 0.5 * (u_1 - u_2/self.l) / self.k
-		u_R = 0.5 * (u_1 + u_2/self.l) / self.k
+		u_L = 0.5 * (u_1 + u_2/self.l) / self.k
+		u_R = 0.5 * (u_1 - u_2/self.l) / self.k
+		print(u_L, u_R)
 		
 		self._ctrl.header.stamp = rospy.Time.now()
 		self._ctrl.point.x = u_L
 		self._ctrl.point.y = u_R
-		self._ctrl.point.z = 1.0
+		self._ctrl.point.z = 0.4
 
 		self._ctrl_pub.publish(self._ctrl)
 		
@@ -180,9 +208,9 @@ if __name__ == "__main__":
 
 	# control parameters
 	k_e = 0.005
-	k_phi = 0.05 * np.eye(2)
-	k_z = 0.005
-	delta = 0.03 * np.array([0.1, 0.1]) 
+	k_phi = 0.5 * np.eye(2)
+	k_z = 0.000005
+	delta = 0.1 * np.array([0.1, 0.1]) 
 
 	controller = Controller(k_e, k_phi, k_z, delta)
 	rospy.loginfo('Initialize controller ...')
@@ -190,7 +218,7 @@ if __name__ == "__main__":
 	rospy.loginfo('Start trajectory tracking ...')
 	controller.set_start_time()		# set starttime to current time 
 	#controller_freq = rospy.get_param('~controller_freq')
-	rate = rospy.Rate(10)	# 10 Hz
+	rate = rospy.Rate(50)	# 10 Hz
 
 	while not rospy.is_shutdown():
 		controller.iteration()
