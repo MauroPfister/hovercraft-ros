@@ -6,7 +6,6 @@ import math
 import numpy as np
 import rospy
 import csv
-import tf2_ros
 import tf
 from geometry_msgs.msg import PointStamped
 
@@ -32,10 +31,6 @@ class Controller():
 		self.k_phi = k_phi
 		self.k_z = k_z
 		self.delta = delta
-		
-		# initialize the tf2 listener to obtain data from OptiTrack
-		#self.tf_buffer = tf2_ros.Buffer()
-		#self.listener = tf2_ros.TransformListener(self.tf_buffer)
 
 		self._listener = tf.TransformListener()
 
@@ -44,6 +39,20 @@ class Controller():
 		self._ctrl = PointStamped()
 		self._ctrl_pub = rospy.Publisher('controls', PointStamped, queue_size=1)
 		
+
+		# initialize debug publishers
+		self._eta = PointStamped()
+		self._nu = PointStamped()
+		self._nu_d = PointStamped()
+		self._U = PointStamped()
+		self._p_desired = PointStamped()
+		self._eta_pub = rospy.Publisher('eta', PointStamped, queue_size=1)
+		self._nu_pub = rospy.Publisher('nu', PointStamped, queue_size=1)
+		self._nu_d_pub = rospy.Publisher('nu_d', PointStamped, queue_size=1)
+		self._U_pub = rospy.Publisher('U', PointStamped, queue_size=1)
+		self._p_desired_pub = rospy.Publisher('p_desired', PointStamped, queue_size=1)
+
+
 		# getting initial time
 		self._t0 = None
 
@@ -53,7 +62,7 @@ class Controller():
 	def circle(self, t):
 		""" Definition of circular trajectory of radius R """
 		R = 2.0
-		w = 2.0 * np.pi / 10.0
+		w = 2.0 * np.pi / 20.0
 		c_wt = np.cos(w*t)
 		s_wt = np.sin(w*t)
 		pos = R * np.array([c_wt, s_wt])
@@ -169,6 +178,8 @@ class Controller():
 		#nu = np.zeros(3)
 		nu_d = np.zeros(3)
 
+
+
 		"""
 		print('--------')
 		print('eta :', eta[0:2], 180/np.pi*eta[2])
@@ -190,12 +201,41 @@ class Controller():
 		# conversion from forward and differential thrust (u_1, u_2) to each motor input (u_L, u_R)
 		# check this, really not sure!!!!!!!
 		# assumes linear relation ship between motor command and generated force by thruster
-		print(u_1, u_2)
 
 		u_L = 0.5 * (u_1 + u_2/self.l) / self.k
 		u_R = 0.5 * (u_1 - u_2/self.l) / self.k
-		print(u_L, u_R)
+		#print(u_L, u_R)
 		
+		# publish to topics
+		self._eta.header.stamp = rospy.Time.now()
+		self._eta.point.x = eta[0]
+		self._eta.point.y = eta[1]
+		self._eta.point.z = 180/np.pi*eta[2]
+		self._eta_pub.publish(self._eta)
+
+		self._nu.header.stamp = rospy.Time.now()
+		self._nu.point.x = nu[0]
+		self._nu.point.y = nu[1]
+		self._nu.point.z = 180/np.pi*nu[2]
+		self._nu_pub.publish(self._nu)
+
+		self._nu_d.header.stamp = rospy.Time.now()
+		self._nu_d.point.x = nu_d[0]
+		self._nu_d.point.y = nu_d[1]
+		self._nu_d.point.z = 180/np.pi*nu_d[2]
+		self._nu_d_pub.publish(self._nu_d)
+
+		self._U.header.stamp = rospy.Time.now()
+		self._U.point.x = u_1
+		self._U.point.y = u_2
+		self._U_pub.publish(self._U)
+
+		self._p_desired.header.stamp = rospy.Time.now()
+		self._p_desired.point.x = p[0]
+		self._p_desired.point.y = p[1]
+		self._p_desired_pub.publish(self._p_desired)
+
+
 		self._ctrl.header.stamp = rospy.Time.now()
 		self._ctrl.point.x = u_L
 		self._ctrl.point.y = u_R
