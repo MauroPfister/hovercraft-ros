@@ -9,6 +9,9 @@ import csv
 import tf
 from geometry_msgs.msg import PointStamped
 
+from dynamic_reconfigure.server import Server
+from ground.cfg import ControlParamsConfig
+
 
 class Controller():
 	""" Trajectory tracking controller for a TinyWhoover hovercraft """
@@ -34,6 +37,8 @@ class Controller():
 
 		self._listener = tf.TransformListener()
 
+		self._param_server = Server(ControlParamsConfig, self._param_callback)
+
 		# initialize publisher for control outputs
 		# ctrl.point.x = left thrust, ctrl.point.y = right thrust, ctrl.point.z = lift
 		self._ctrl = PointStamped()
@@ -55,6 +60,15 @@ class Controller():
 
 		# getting initial time
 		self._t0 = None
+	
+	def _param_callback(self, config, level):
+		self.k_e = config['k_e']
+		self.k_phi = config['k_phi'] * np.eye(2)
+		self.k_z = config['k_z']
+		self.delta = config['delta'] * np.array([0.1, 0.1]) 
+
+		rospy.loginfo("Update control parameters: k_e = {k_e}, k_phi = {k_phi} ".format(**config))
+		return config
 
 	def set_start_time(self):	
 		self._t0 = rospy.Time.now()
@@ -62,7 +76,7 @@ class Controller():
 	def circle(self, t):
 		""" Definition of circular trajectory of radius R """
 		R = 2.0
-		w = 2.0 * np.pi / 20.0
+		w = 2.0 * np.pi / 8.0
 		c_wt = np.cos(w*t)
 		s_wt = np.sin(w*t)
 		pos = R * np.array([c_wt, s_wt])
@@ -174,7 +188,7 @@ class Controller():
 		"""
 
 		eta = np.array([trans[0], trans[2], -rot[0]])
-		nu = np.array([trans_vel[0], trans_vel[1], -rot_vel[1]])
+		nu = np.array([trans_vel[0], trans_vel[2], -rot_vel[1]])
 		#nu = np.zeros(3)
 		nu_d = np.zeros(3)
 
@@ -239,7 +253,7 @@ class Controller():
 		self._ctrl.header.stamp = rospy.Time.now()
 		self._ctrl.point.x = u_L
 		self._ctrl.point.y = u_R
-		self._ctrl.point.z = 0.4
+		self._ctrl.point.z = 0.7
 
 		self._ctrl_pub.publish(self._ctrl)
 		

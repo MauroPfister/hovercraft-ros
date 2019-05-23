@@ -19,7 +19,15 @@
         <param name="identification_freq" value="10" />
     </node>
 
-    <!-- rqt_multiplot     -->
-    <node name="plot" pkg="rqt_multiplot" type="rqt_multiplot" output="screen" />
+    <!-- dynamic reconfigure gui -->
+    <node name="reconfigure" pkg="rqt_gui" type="rqt_gui" output="screen"
+	args="-s reconfigure"/>
 
+    <!-- dynamic reconfigure server
+    <node name="my_node" pkg="ground" type="my_node.py" output="screen"/>
+    -->
+    
+    <!-- rqt_multiplot   
+    <node name="plot" pkg="rqt_multiplot" type="rqt_multiplot" output="screen" />
+	-->
 </launch>
