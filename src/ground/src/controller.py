@@ -23,8 +23,8 @@ class Controller():
 		self.I_z = 0.00013	# moment of inertia around z axis
 
 		# those coefficients are some wild ass guesses ....
-		self.d_v = 0.05		# linear damping coefficient
-		self.d_r = 0.0001	# rotational damping coefficient
+		self.d_v = 0.005		# linear damping coefficient
+		self.d_r = 0.000001	# rotational damping coefficient
 
 		self.k = 0.08		# conversion coefficient (should probably depend quadratically on speed...)
 		self.l = 0.0325		# lever arm of thrusters
@@ -34,6 +34,8 @@ class Controller():
 		self.k_phi = k_phi
 		self.k_z = k_z
 		self.delta = delta
+
+		self.lift = 0.5		# lift of hovercraft
 
 		self._listener = tf.TransformListener()
 
@@ -66,6 +68,7 @@ class Controller():
 		self.k_phi = config['k_phi'] * np.eye(2)
 		self.k_z = config['k_z']
 		self.delta = config['delta'] * np.array([0.1, 0.1]) 
+		self.lift = config['lift']
 
 		rospy.loginfo("Update control parameters: k_e = {k_e}, k_phi = {k_phi} ".format(**config))
 		return config
@@ -76,7 +79,7 @@ class Controller():
 	def circle(self, t):
 		""" Definition of circular trajectory of radius R """
 		R = 2.0
-		w = 2.0 * np.pi / 8.0
+		w = 2.0 * np.pi / 20.0
 		c_wt = np.cos(w*t)
 		s_wt = np.sin(w*t)
 		pos = R * np.array([c_wt, s_wt])
@@ -251,9 +254,9 @@ class Controller():
 
 
 		self._ctrl.header.stamp = rospy.Time.now()
-		self._ctrl.point.x = u_L
-		self._ctrl.point.y = u_R
-		self._ctrl.point.z = 0.7
+		self._ctrl.point.x = u_L / 2000
+		self._ctrl.point.y = u_R / 2000
+		self._ctrl.point.z = self.lift
 
 		self._ctrl_pub.publish(self._ctrl)
 		
