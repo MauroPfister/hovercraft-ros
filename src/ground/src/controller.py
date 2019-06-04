@@ -8,6 +8,8 @@ import rospy
 import csv
 import tf
 from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import Vector3Stamped
+
 
 from dynamic_reconfigure.server import Server
 from ground.cfg import ControlParamsConfig
@@ -24,7 +26,7 @@ class Controller():
 
 		# those coefficients are some wild ass guesses ....
 		self.d_v = 0.005		# linear damping coefficient
-		self.d_r = 0.000001	# rotational damping coefficient
+		self.d_r = 0.00001		# rotational damping coefficient
 
 		self.k = 0.08		# conversion coefficient (should probably depend quadratically on speed...)
 		self.l = 0.0325		# lever arm of thrusters
@@ -79,7 +81,7 @@ class Controller():
 	def circle(self, t):
 		""" Definition of circular trajectory of radius R """
 		R = 2.0
-		w = 2.0 * np.pi / 20.0
+		w = 2.0 * np.pi / 10.0
 		c_wt = np.cos(w*t)
 		s_wt = np.sin(w*t)
 		pos = R * np.array([c_wt, s_wt])
@@ -123,6 +125,20 @@ class Controller():
 		trans, rot = self._listener.lookupTransform(world_frame, drone_frame, rospy.Time(0))	# get latest transform
 		trans_vel, rot_vel = self._listener.lookupTwistFull(drone_frame, world_frame, drone_frame, refpoint
 										, drone_frame, rospy.Time(0), rospy.Duration(0.1))
+
+
+		# converting velocity from world frame to body frame
+		vel_world = Vector3Stamped()
+		vel_world.header.frame_id = world_frame
+		vel_world.header.stamp = rospy.Time(0)
+		vel_world.vector.x = trans_vel[0]
+		vel_world.vector.y = trans_vel[1]
+		vel_world.vector.z = trans_vel[2]
+		vel_body = self._listener.transformVector3(drone_frame, vel_world)
+		trans_vel = vel_body.vector
+
+		trans_vel = (vel_body.vector.x, vel_body.vector.y, vel_body.vector.z)
+
 		rot_euler = tf.transformations.euler_from_quaternion(rot, axes='syzx')		# first rotation around y axis of world_frame
 
 		return trans, rot_euler, trans_vel, rot_vel
@@ -254,9 +270,17 @@ class Controller():
 
 
 		self._ctrl.header.stamp = rospy.Time.now()
-		self._ctrl.point.x = u_L / 2000
-		self._ctrl.point.y = u_R / 2000
-		self._ctrl.point.z = self.lift
+
+		armed = 1
+
+		if armed:
+			self._ctrl.point.x = u_L
+			self._ctrl.point.y = u_R
+			self._ctrl.point.z = self.lift
+		else:
+			self._ctrl.point.x = 0.0 
+			self._ctrl.point.y = 0.0
+			self._ctrl.point.z = 0.0
 
 		self._ctrl_pub.publish(self._ctrl)
 		
