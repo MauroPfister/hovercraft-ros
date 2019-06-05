@@ -15,34 +15,34 @@ class Sender(object):
 	def __init__(self):
 
 		# Set up ground socket
-		self.ground = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		self.ground_address = ('0.0.0.0', 3333)
-		print('Starting up on %s port %s' % self.ground_address)
-		self.ground.bind(self.ground_address)
+		self._ground = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self._ground_address = ('0.0.0.0', 3333)
+		print('Starting up on %s port %s' % self._ground_address)
+		self._ground.bind(self._ground_address)
 
+		# TODO: Make this more robust and keep trying of hovercraft cannot be reached immediately
 		# Try to connect to hovercraft
 		print("Connecting to hovercraft ...")
-		_ , self.remote_address = self.ground.recvfrom(1024)
+		_ , self._remote_address = self._ground.recvfrom(1024)
 		
-		if (self.remote_address != 0):
-			print("Connected successfully. Hovercraft address is %s" % self.remote_address[0])
+		if (self._remote_address != 0):
+			print("Connected successfully. Hovercraft address is %s" % self._remote_address[0])
 		else:
 			print("Could not connect to hovercraft")
-			# Shut down script --> How?
 
 		# Start up rospy node
 		rospy.init_node('sender')
 		rospy.on_shutdown(self.stop)	# Stop motors when shutdown
 		rospy.Subscriber("controls", PointStamped, self.callback)
 
-		self.motors = drone.Motors()
+		self._motors = drone.Motors()
 
-		self.motors.motor_DL = 1000
-		self.motors.motor_DR = 1000
-		self.motors.motor_L = 1000
-		self.motors.motor_R = 1000
+		self._motors.motor_DL = 1000
+		self._motors.motor_DR = 1000
+		self._motors.motor_L = 1000
+		self._motors.motor_R = 1000
 
-		self.armed = True
+		self._armed = True
 
 
 	def callback(self, controls):
@@ -58,27 +58,27 @@ class Sender(object):
 		lift = min(max(controls.point.z, 0), 1)
 
 		# Scale to motor inputs
-		self.motors.motor_L = int(1000 + thrust_L * 1000)
-		self.motors.motor_R = int(1000 + thrust_R * 1000)
+		self._motors.motor_L = int(1000 + thrust_L * 1000)
+		self._motors.motor_R = int(1000 + thrust_R * 1000)
 
-		self.motors.motor_DR = int(1000 + lift * 1000)
-		self.motors.motor_DL = self.motors.motor_DR
+		self._motors.motor_DR = int(1000 + lift * 1000)
+		self._motors.motor_DL = self._motors.motor_DR
 
 		# Send controls to motor
 		# Should use basic command from console to arm and disarm hovercraft
-		if (self.armed == True):
-			self.sendToMotors()
+		if (self._armed == True):
+			self._sendToMotors()
 
-	def sendToMotors(self):
-		self.ground.sendto(self.motors.SerializeToString(), self.remote_address)
+	def _sendToMotors(self):
+		self._ground.sendto(self._motors.SerializeToString(), self._remote_address)
 
 	def stop(self):
 		# print("\nShut down and stop motors")
-		self.motors.motor_DL = 1000
-		self.motors.motor_DR = 1000
-		self.motors.motor_L = 1000
-		self.motors.motor_R = 1000
-		self.sendToMotors()
+		self._motors.motor_DL = 1000
+		self._motors.motor_DR = 1000
+		self._motors.motor_L = 1000
+		self._motors.motor_R = 1000
+		self._sendToMotors()
 
 if __name__ == "__main__":
 	sender = Sender()
