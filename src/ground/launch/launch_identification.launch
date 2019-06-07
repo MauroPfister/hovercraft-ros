@@ -13,7 +13,7 @@
 
     <!-- Identification procedure-->
     <node name="identification" pkg="ground" type="identification.py">
-        <param name="identification_freq" value="20" />
+        <param name="identification_freq" value="10" />
     </node>
 
 </launch>

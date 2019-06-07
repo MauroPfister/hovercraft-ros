@@ -23,7 +23,7 @@ class Controller(object):
 		self._body_frame = "hovercraft"
 
 		# parameters of the hovercraft
-		# TODO: Create a vehicle (hovercraft) class that contains that information?
+		# TODO: Create a vehicle (hovercraft) class that contains that information?
 		self.m = 0.0583		# mass		
 		self.I_z = 0.00013	# moment of inertia around z axis
 		# TODO: Get a better estimation of these parameters, currently some wild ass guesses ...
@@ -55,9 +55,9 @@ class Controller(object):
 
 	def iteration(self):
 		"""One iteration of the control loop. Implemented in child class."""
-        raise NotImplementedError
+		raise NotImplementedError
 
-	def _force_and_torque_to_motor_speed(u_1, u_2):
+	def _force_and_torque_to_motor_speed(self, u_1, u_2):
 		"""Convert from forward force and steering torque to normalized motor speeds.
 		
 		Currently we assume a linear relation ship between normalized motor speeds [0, 1] 
@@ -140,7 +140,7 @@ class TrajectoryTrackingController(Controller):
 	"""
 
 	def __init__(self, k_e, k_phi, k_z, delta):
-		super(Controller, self).__init__()
+		super(TrajectoryTrackingController, self).__init__()
 
 		# controller parameters
 		self.k_e = k_e
@@ -284,7 +284,7 @@ class TrajectoryTrackingController(Controller):
 
 
 		# convert from forward force and steering moment (u_1, u_2) to motor speeds (u_L, u_R)
-		u_L, u_L = self._force_and_torque_to_motor_speed(u_1, u_2)
+		u_L, u_R = self._force_and_torque_to_motor_speed(u_1, u_2)
 		
 		# publish hovercraft state
 		self._publish_state(eta, nu, nu_d, time)
