@@ -32,13 +32,13 @@ class OpenLoopPRBS(Controller):
 		"""Apply one prbs input."""
 		if self._prbs:
 			thrust = self._prbs.pop(0)
-			u_L = int(thrust[0])
-			u_R = int(thrust[1])
+			u_L = float(thrust[0])
+			u_R = float(thrust[1])
 			lift = 1.0
 		else:
-			u_L, u_R, lift = (0, 0, 0)
+			u_L, u_R, lift = (0.0, 0.0, 0.0)
 		
-		time =  rospy.Time.now()
+		time = rospy.Time.now()
 		ctrl = PointStamped()
 		ctrl.header.stamp = time
 		ctrl.point.x = u_L

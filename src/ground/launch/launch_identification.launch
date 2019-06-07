@@ -12,7 +12,7 @@
     <node name="sender" pkg="ground" type="sender.py" />
 
     <!-- Identification procedure-->
-    <node name="identification" pkg="ground" type="identification.py">
+    <node name="identification" pkg="ground" type="identification.py" output="screen">
         <param name="identification_freq" value="10" />
     </node>
 
