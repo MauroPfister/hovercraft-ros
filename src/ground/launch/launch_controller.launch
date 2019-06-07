@@ -8,24 +8,17 @@
         <arg name="server" default="192.168.1.100" />
     </include>
 
-    <!-- Convert pose from OptiTrack and write into new topic-->
-    <node name="converter" pkg="ground" type="converter.py" />
-
     <!-- Communication with hovercraft-->
     <node name="sender" pkg="ground" type="sender.py" />
 
-    <!-- Identification procedure-->
+    <!-- Controller -->
     <node name="controller" pkg="ground" type="controller.py" output="screen">
-        <param name="identification_freq" value="10" />
+        <param name="controller_freq" value="50" />
     </node>
 
-    <!-- dynamic reconfigure gui -->
+    <!-- Dynamic reconfigure gui -->
     <node name="reconfigure" pkg="rqt_gui" type="rqt_gui" output="screen"
 	args="-s reconfigure"/>
-
-    <!-- dynamic reconfigure server
-    <node name="my_node" pkg="ground" type="my_node.py" output="screen"/>
-    -->
     
     <!-- rqt_multiplot   
     <node name="plot" pkg="rqt_multiplot" type="rqt_multiplot" output="screen" />

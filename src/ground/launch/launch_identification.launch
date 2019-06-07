@@ -8,15 +8,12 @@
         <arg name="server" default="192.168.1.100" />
     </include>
 
-    <!-- Convert pose from OptiTrack and write into new topic-->
-    <node name="converter" pkg="ground" type="converter.py" />
-
     <!-- Communication with hovercraft-->
     <node name="sender" pkg="ground" type="sender.py" />
 
     <!-- Identification procedure-->
     <node name="identification" pkg="ground" type="identification.py">
-        <param name="identification_freq" value="10" />
+        <param name="identification_freq" value="20" />
     </node>
 
 </launch>

@@ -35,6 +35,7 @@ class Controller(object):
 		# set up listener for tf transforms
 		self._listener = tf.TransformListener()
 
+		# TODO: Consider doing this with numpy messages instead of converting to PointStamped each time
 		# initialize publisher for control outputs
 		# ctrl.point.x = left thrust, ctrl.point.y = right thrust, ctrl.point.z = lift
 		self._ctrl_pub = rospy.Publisher('controls', PointStamped, queue_size=1)
@@ -54,7 +55,7 @@ class Controller(object):
 
 	def iteration(self):
 		"""One iteration of the control loop. Implemented in child class."""
-		pass
+        raise NotImplementedError
 
 	def _force_and_torque_to_motor_speed(u_1, u_2):
 		"""Convert from forward force and steering torque to normalized motor speeds.
@@ -319,6 +320,8 @@ class TrajectoryTrackingController(Controller):
 
 if __name__ == "__main__":
 	rospy.init_node('trajectory_controller', anonymous=True)
+	controller_freq = rospy.get_param('~controller_freq')
+	rate = rospy.Rate(controller_freq)
 
 	# controller parameters
 	k_e = 0.005
@@ -331,8 +334,7 @@ if __name__ == "__main__":
 	rospy.sleep(5.0)	# ensure that the tf listener has time to receive 5s of data
 	rospy.loginfo('Start trajectory tracking ...')
 	controller.set_start_time()		# set starttime to current time 
-	#controller_freq = rospy.get_param('~controller_freq')
-	rate = rospy.Rate(50)
+
 
 	while not rospy.is_shutdown():
 		controller.iteration()

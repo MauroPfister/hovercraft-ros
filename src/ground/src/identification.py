@@ -2,58 +2,66 @@
 
 import sys
 import os
-import math
 import rospy
 import csv
-import tf
 from geometry_msgs.msg import PointStamped
 
+from controller import Controller
 
-class Identification(object):
-	""" Generating identification data for a TinyWhoover hovercraft """
 
-	def __init__(self, identification_freq=10):
+class OpenLoopPRBS(Controller):
+	"""Open-loop controller that applies PRBS signal for system identification."""
 
-		# Start up rospy node
-		self.pub = rospy.Publisher('controls', PointStamped, queue_size=10)
+	def __init__(self, prbs_path=None):
+		super(OpenLoopPRBS, self).__init__()
 
-		identification_freq = rospy.get_param('~identification_freq')
-		self.rate = rospy.Rate(identification_freq)	# 10 Hz
+		self._prbs = []
+		self._load_prbs(prbs_path)
 
-		# Open and read prbs file
-		prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'prbs.csv')
-		
-		self.prbs = []
-		with open(prbs_path,'r') as f:
+	def _load_prbs(self, path_to_file):
+		"""Load content of prbs file into list."""
+		if not os.path.isfile(path_to_file)
+			raise Exception("Prbs file does not exist.")
+
+		with open(path_to_file, 'r') as f:
 			read = csv.reader(f)
 			for row in read:
-				self.prbs.append(row)
+				self._prbs.append(row)
 
-		self.prbs = iter(self.prbs)
-
-	def run(self):
-		""" Simple prbs identification procedure """
-
-		control_signal = PointStamped()
-
-		while not rospy.is_shutdown():
-			# Should check if prbs is finished....
-			thrust = next(self.prbs)
-			thrust_L = int(thrust[0])
-			thrust_R = int(thrust[1])
+	def iteration(self):
+		"""Apply one prbs input."""
+		if self._prbs:
+			thrust = self._prbs.pop(0)
+			u_L = int(thrust[0])
+			u_R = int(thrust[1])
 			lift = 1.0
-			time =  rospy.Time.now()
-
-			control_signal.header.stamp = time
-			control_signal.point.x = thrust_L
-			control_signal.point.y = thrust_R
-			control_signal.point.z = lift
-
-			self.pub.publish(control_signal)
-			self.rate.sleep()
+		else:
+			u_L, u_R, lift = (0, 0, 0)
 		
+		time =  rospy.Time.now()
+		ctrl = PointStamped()
+		ctrl.header.stamp = time
+		ctrl.point.x = thrust_L
+		ctrl.point.y = thrust_R
+		ctlr.point.z = lift
+
+		eta, nu, nu_d = self._get_state()
+		self._publish_state(eta, nu, nu_d, time)
+		self._ctrl_pub.publish(ctrl)
+		
+
 if __name__ == "__main__":
 	rospy.init_node('identification', anonymous=True)
+	identification_freq = rospy.get_param('~identification_freq')
+	rate = rospy.Rate(identification_freq)
 
-	ident = Identification(10)
-	ident.run()
+	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'prbs.csv')
+
+	identificator = OpenLoopPRBS(prbs_path)
+	rospy.loginfo('Initialize controller ...')
+	rospy.sleep(5.0)	# ensure that the tf listener has time to receive 5s of data
+	rospy.loginfo('Start trajectory tracking ...')
+
+	while not rospy.is_shutdown():
+		identificator.iteration()
+		rate.sleep()
