@@ -12,8 +12,12 @@ from controller import Controller
 class OpenLoopPRBS(Controller):
 	"""Open-loop controller that applies PRBS signal for system identification."""
 
-	def __init__(self, prbs_path=None):
+	def __init__(self, prbs_path=None, u_fwd=0.5, u_diff=0.1):
 		super(OpenLoopPRBS, self).__init__()
+
+		# forward and differential input
+		self._u_fwd = u_fwd
+		self._u_diff = u_diff
 
 		self._prbs = []
 		self._load_prbs(prbs_path)
@@ -31,9 +35,10 @@ class OpenLoopPRBS(Controller):
 	def iteration(self):
 		"""Apply one prbs input."""
 		if self._prbs:
-			thrust = self._prbs.pop(0)
-			u_L = float(thrust[0])
-			u_R = float(thrust[1])
+			one_prbs = self._prbs.pop(0)
+			u_L = self._u_fwd + self._u_diff * float(one_prbs[0])
+			u_R = self._u_fwd + self._u_diff * float(one_prbs[1])
+			#u_R += 0.2		# add bias to make hovercraft go in straight line
 			lift = 1.0
 		else:
 			u_L, u_R, lift = (0.0, 0.0, 0.0)
@@ -53,12 +58,13 @@ class OpenLoopPRBS(Controller):
 if __name__ == "__main__":
 	rospy.init_node('identification', anonymous=True)
 	identification_freq = rospy.get_param('~identification_freq')
+	identification_freq = 10
 	rate = rospy.Rate(identification_freq)
 
 	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'differential_prbs.csv')
 
-	identificator = OpenLoopPRBS(prbs_path)
-	rospy.sleep(5.0)	# ensure that the tf listener has time to receive 5s of data
+	identificator = OpenLoopPRBS(prbs_path, u_fwd=0.6, u_diff=0.4)
+	rospy.sleep(2.0)	# ensure that the tf listener has time to receive 2s of data
 	rospy.loginfo('Start random PRBS ...')
 
 	while not rospy.is_shutdown():
