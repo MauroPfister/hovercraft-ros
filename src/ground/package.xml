@@ -53,7 +53,9 @@
   <build_export_depend>std_msgs</build_export_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-
+  <exec_depend>vrpn_client_ros</exec_depend>
+  <exec_depend>rqt_multiplot</exec_depend>
+  <exec_depend>variant</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

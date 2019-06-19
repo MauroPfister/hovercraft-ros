@@ -3,6 +3,7 @@
 /build
 /bagfiles
 /bagfiles_archive
+/identification_data
 .catkin_workspace
 
 # Linux backup files
