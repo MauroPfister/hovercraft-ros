@@ -25,11 +25,11 @@ class Controller(object):
 		# parameters of the hovercraft
 		# TODO: Create a vehicle (hovercraft) class that contains that information?
 		self.m = 0.0583		# mass		
-		self.I_z = 0.00013	# moment of inertia around z axis
+		self.I_z = 0.0001	# moment of inertia around z axis
 		# TODO: Get a better estimation of these parameters, currently some wild ass guesses ...
-		self.d_v = 0.005		# linear damping coefficient
-		self.d_r = 0.00001		# rotational damping coefficient
-		self.k = 0.08		# conversion coefficient (should probably depend quadratically on speed...)
+		self.d_v = 0.04		# linear damping coefficient
+		self.d_r = 0.00003		# rotational damping coefficient
+		self.k = 0.07		# conversion coefficient (should probably depend quadratically on speed...)
 		self.l = 0.0325		# lever arm of thrusters
 
 		# set up listener for tf transforms

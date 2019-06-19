@@ -38,7 +38,7 @@ class OpenLoopPRBS(Controller):
 			one_prbs = self._prbs.pop(0)
 			u_L = self._u_fwd + self._u_diff * float(one_prbs[0])
 			u_R = self._u_fwd + self._u_diff * float(one_prbs[1])
-			#u_R += 0.2		# add bias to make hovercraft go in straight line
+			#u_R = 0
 			lift = 1.0
 		else:
 			u_L, u_R, lift = (0.0, 0.0, 0.0)
@@ -58,12 +58,12 @@ class OpenLoopPRBS(Controller):
 if __name__ == "__main__":
 	rospy.init_node('identification', anonymous=True)
 	identification_freq = rospy.get_param('~identification_freq')
-	identification_freq = 10
+	identification_freq = 50
 	rate = rospy.Rate(identification_freq)
 
-	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'differential_prbs.csv')
+	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'differential_prbs_10Hz.csv')
 
-	identificator = OpenLoopPRBS(prbs_path, u_fwd=0.6, u_diff=0.4)
+	identificator = OpenLoopPRBS(prbs_path, u_fwd=0.5, u_diff=0.5)
 	rospy.sleep(2.0)	# ensure that the tf listener has time to receive 2s of data
 	rospy.loginfo('Start random PRBS ...')
 
