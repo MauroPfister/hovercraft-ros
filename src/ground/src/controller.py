@@ -25,11 +25,10 @@ class Controller(object):
 		# parameters of the hovercraft
 		# TODO: Create a vehicle (hovercraft) class that contains that information?
 		self.m = 0.0583		# mass		
-		self.I_z = 0.0001	# moment of inertia around z axis
-		# TODO: Get a better estimation of these parameters, currently some wild ass guesses ...
-		self.d_v = 0.04		# linear damping coefficient
-		self.d_r = 0.00003		# rotational damping coefficient
-		self.k = 0.07		# conversion coefficient (should probably depend quadratically on speed...)
+		self.I_z = 89e-6	# moment of inertia around z axis
+		self.d_v = 33e-3		# linear damping coefficient
+		self.d_r = 31e-6		# rotational damping coefficient
+		self.k = 80e-3		# conversion coefficient
 		self.l = 0.0325		# lever arm of thrusters
 
 		# set up listener for tf transforms
@@ -195,15 +194,16 @@ class TrajectoryTrackingController(Controller):
 		return pos, vel, acc, jerk
 
 	def line(self, t):
-		p0 = np.array([-0.0, -0.0])
-		p1 = np.array([3.0, 2.0])
-		pos = p0*(1 - t/10) + t/10*p1
-		vel = (p1 - p0)/10
+		p0 = np.array([-2.5, 2.5])
+		p1 = np.array([2.0, -2.0])
+		pos = p0*(1 - t/5) + t/5*p1
+		vel = (p1 - p0)/5
 		acc = np.zeros(2)
 		jerk = np.zeros(2)
 
-		if (t > 10):
-			pos = pos * 0
+		# stop at p1 after 5 seconds
+		if (t > 5):
+			pos = p1
 			vel = vel * 0
 			acc = acc * 0
 			jerk = jerk * 0
