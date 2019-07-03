@@ -57,11 +57,11 @@ class OpenLoopPRBS(Controller):
 
 if __name__ == "__main__":
 	rospy.init_node('identification', anonymous=True)
-	identification_freq = rospy.get_param('~identification_freq')
 	identification_freq = 50
 	rate = rospy.Rate(identification_freq)
 
-	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/'), 'differential_prbs_10Hz.csv')
+	prbs_path = os.path.join(os.path.dirname('/home/prabhat/hovercraft_ws/identification_data/id_input/'), 
+												'differential_prbs_10Hz.csv')
 
 	identificator = OpenLoopPRBS(prbs_path, u_fwd=0.5, u_diff=0.5)
 	rospy.sleep(2.0)	# ensure that the tf listener has time to receive 2s of data

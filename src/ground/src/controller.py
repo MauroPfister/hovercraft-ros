@@ -14,7 +14,7 @@ from ground.cfg import ControlParamsConfig
 
 
 class Controller(object):
-	"""Base class for controllers of a TinyWhoover hovercraft."""
+	"""Base class for controllers of a hovercraft."""
 
 	def __init__(self):
 		"""Initialize a general controller object."""
@@ -163,7 +163,7 @@ class TrajectoryTrackingController(Controller):
 		self.k_e = config['k_e']
 		self.k_phi = config['k_phi'] * np.eye(2)
 		self.k_z = config['k_z']
-		self.delta = config['delta'] * np.array([1.0, 0.0]) 
+		self.delta = config['delta'] * np.array([-1.0, 0.0]) 
 		self.lift = config['lift']
 
 		rospy.loginfo("Update control parameters: k_e = {k_e}, k_phi = {k_phi} ".format(**config))
@@ -321,7 +321,6 @@ class TrajectoryTrackingController(Controller):
 
 if __name__ == "__main__":
 	rospy.init_node('trajectory_controller', anonymous=True)
-	controller_freq = rospy.get_param('~controller_freq')
 	rate = rospy.Rate(controller_freq)
 
 	# controller parameters
