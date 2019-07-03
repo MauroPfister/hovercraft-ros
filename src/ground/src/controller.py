@@ -75,10 +75,11 @@ class Controller(object):
 			velocity expressed in body frame	: nu  = (u, v, r) 
 		"""
 		# get latest position and rotation
-		#self._listener.waitForTransform(world_frame, drone_frame, rospy.Time(0), rospy.Duration(1.0))		# not sure if this is needed
 		pos, rot = self._listener.lookupTransform(self._world_frame, self._body_frame, rospy.Time(0))
 
 		# get latest linear and angular velocity expressed in world frame
+		# apparently the lookupTwistFull function has a bug and does always return the velocities in the world frame
+		# see issue on github: https://github.com/ros/geometry/issues/43
 		lin_vel, ang_vel = self._listener.lookupTwistFull(self._body_frame, self._world_frame, self._body_frame, 
 													(0, 0, 0), self._body_frame, rospy.Time(0), rospy.Duration(0.1))
 		
@@ -162,7 +163,7 @@ class TrajectoryTrackingController(Controller):
 		self.k_e = config['k_e']
 		self.k_phi = config['k_phi'] * np.eye(2)
 		self.k_z = config['k_z']
-		self.delta = config['delta'] * np.array([0.1, 0.1]) 
+		self.delta = config['delta'] * np.array([1.0, 0.0]) 
 		self.lift = config['lift']
 
 		rospy.loginfo("Update control parameters: k_e = {k_e}, k_phi = {k_phi} ".format(**config))
@@ -239,7 +240,7 @@ class TrajectoryTrackingController(Controller):
 
 		R_psi_T = np.array([[c_psi, s_psi], [-s_psi, c_psi]])		# transposed rotation matrix
 		S_r = nu[2] * np.array([[0.0, -1.0], [1.0, 0.0]])			# skew matrix
-		B = np.array([[1.0, m * delta[1]], [0.0, m * delta[0]]])
+		B = np.array([[1.0, m * delta[1]], [0.0, -m * delta[0]]])
 		B_inv = np.linalg.inv(B)
 		B_d = B[:, 1]
 

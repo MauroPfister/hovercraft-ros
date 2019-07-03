@@ -20,7 +20,7 @@ class Sender(object):
 		print('Starting up on %s port %s' % self._ground_address)
 		self._ground.bind(self._ground_address)
 
-		# TODO: Make this more robust and keep trying of hovercraft cannot be reached immediately
+		# TODO: Make this more robust and keep trying if hovercraft cannot be reached immediately
 		# Try to connect to hovercraft
 		print("Connecting to hovercraft ...")
 		_ , self._remote_address = self._ground.recvfrom(1024)
@@ -47,8 +47,8 @@ class Sender(object):
 
 	def callback(self, controls):
 		""" Convert controls to real motor inputs
-			controls[0] = right thruster
-			controls[1] = left thruster
+			controls[0] = left thruster
+			controls[1] = right thruster
 			controls[2] = lift
 		"""
 
