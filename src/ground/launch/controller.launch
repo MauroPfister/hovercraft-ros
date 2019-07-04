@@ -1,7 +1,7 @@
 <launch>
     <!-- Log all topics -->
     <node pkg="rosbag" type="record" name="my_rosbag" output="screen" 
-          args="record -o /home/prabhat/hovercraft_ws/bagfiles/data_id --all"/>
+          args="record -o /home/prabhat/hovercraft_ws/bagfiles/recording --all"/>
     
     <!-- Data streaming from OptiTrack (192.168.1.100)-->
     <include file="$(find vrpn_client_ros)/launch/sample.launch">
@@ -22,5 +22,5 @@
     
     <!-- rqt_multiplot   
     <node name="plot" pkg="rqt_multiplot" type="rqt_multiplot" output="screen" />
-	-->
+    -->
 </launch>

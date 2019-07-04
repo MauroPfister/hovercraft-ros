@@ -10,7 +10,8 @@ import numpy as np
 
 from dynamic_reconfigure.server import Server
 from ground.cfg import ControlParamsConfig
-from ground import hovercraft
+from hovercraft import Hovercraft
+from hovercraft import TinyWhoover
 
 
 
@@ -137,8 +138,8 @@ class TrajectoryTrackingController(Controller):
 		k_e, k_phi, k_z, delta
 	"""
 
-	def __init__(self, k_e, k_phi, k_z, delta):
-		super(TrajectoryTrackingController, self).__init__()
+	def __init__(self, hovercraft, k_e, k_phi, k_z, delta):
+		super(TrajectoryTrackingController, self).__init__(hovercraft)
 
 		# controller parameters
 		self.k_e = k_e
