@@ -4,6 +4,7 @@
 /bagfiles
 /bagfiles_archive
 /identification_data
+/src/variant-master
 .catkin_workspace
 
 # Linux backup files
