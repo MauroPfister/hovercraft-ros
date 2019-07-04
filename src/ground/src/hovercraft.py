@@ -9,10 +9,10 @@ class Hovercraft(object):
     # add methods that are valid for every hovercraft
 
 class TinyWhoover(Hovercraft):
-	"""Class defining the properties of a Tiny Whoover miniature hovercraft."""
+	"""Class defining a Tiny Whoover miniature hovercraft."""
 
 	def __init__(self):
-		super(TrajectoryTrackingController, self).__init__()
+		super(Hovercraft, self).__init__()
 
         # coefficients estimated in system identification
 		self.m = 0.0583		# mass		

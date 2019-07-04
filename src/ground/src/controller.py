@@ -10,26 +10,24 @@ import numpy as np
 
 from dynamic_reconfigure.server import Server
 from ground.cfg import ControlParamsConfig
+from ground import hovercraft
 
 
 
 class Controller(object):
 	"""Base class for controllers of a hovercraft."""
 
-	def __init__(self):
+	def __init__(self, hovercraft):
 		"""Initialize a general controller object."""
 		# frame names
 		self._world_frame = "world"
 		self._body_frame = "hovercraft"
 
 		# parameters of the hovercraft
-		# TODO: Create a vehicle (hovercraft) class that contains that information?
-		self.m = 0.0583		# mass		
-		self.I_z = 89e-6	# moment of inertia around z axis
-		self.d_v = 33e-3		# linear damping coefficient
-		self.d_r = 31e-6		# rotational damping coefficient
-		self.k = 80e-3		# conversion coefficient
-		self.l = 0.0325		# lever arm of thrusters
+		if (isinstance(hovercraft, Hovercraft)):
+			self.hovercraft = hovercraft
+		else:
+			raise Exception("Passed hovercraft is not of type Hovercraft.")
 
 		# set up listener for tf transforms
 		self._listener = tf.TransformListener()
@@ -56,14 +54,14 @@ class Controller(object):
 		"""One iteration of the control loop. Implemented in child class."""
 		raise NotImplementedError
 
-	def _force_and_torque_to_motor_speed(self, u_1, u_2):
+	def _force_and_torque_to_motor_input(self, u_1, u_2):
 		"""Convert from forward force and steering torque to normalized motor speeds.
 		
 		Currently we assume a linear relation ship between normalized motor speeds [0, 1] 
 		and generated force by thrusters.
 		"""
-		u_L = 0.5 * (u_1 + u_2/self.l) / self.k
-		u_R = 0.5 * (u_1 - u_2/self.l) / self.k
+		u_L = 0.5 * (u_1 + u_2/self.hovercraft.l) / self.hovercraft.k
+		u_R = 0.5 * (u_1 - u_2/self.hovercraft.l) / self.hovercraft.k
 
 		return u_L, u_R
 
@@ -280,12 +278,12 @@ class TrajectoryTrackingController(Controller):
 
 		# calculate control output
 		u_1, u_2 = self._calculate_control(self.k_e, self.k_phi, self.k_z, self.delta, 
-											self.m, self.I_z, self.d_v, self.d_r, 
+											self.hovercraft.m, self.hovercraft.I_z, self.hovercraft.d_v, self.hovercraft.d_r, 
 											eta, nu, nu_d, p, p_d, p_dd, p_ddd)
 
 
-		# convert from forward force and steering moment (u_1, u_2) to motor speeds (u_L, u_R)
-		u_L, u_R = self._force_and_torque_to_motor_speed(u_1, u_2)
+		# convert from forward force and steering moment (u_1, u_2) to motor input (u_L, u_R)
+		u_L, u_R = self._force_and_torque_to_motor_input(u_1, u_2)
 		
 		# publish hovercraft state
 		self._publish_state(eta, nu, nu_d, time)
@@ -321,20 +319,23 @@ class TrajectoryTrackingController(Controller):
 
 if __name__ == "__main__":
 	rospy.init_node('trajectory_controller', anonymous=True)
+	controller_freq = rospy.get_param('~controller_freq')
 	rate = rospy.Rate(controller_freq)
 
-	# controller parameters
-	k_e = 0.005
-	k_phi = 0.5 * np.eye(2)
-	k_z = 0.000005
-	delta = 0.1 * np.array([0.1, 0.1]) 
+	# create hovercraft 
+	tinywhoover = TinyWhoover()
 
-	controller = TrajectoryTrackingController(k_e, k_phi, k_z, delta)
+	# controller parameters (will be overwritten by dynamic reconfigure)
+	k_e = 0.05
+	k_phi = 0.005 * np.eye(2)
+	k_z = 0.0005
+	delta = np.array([-0.01, 0.0]) 
+
+	controller = TrajectoryTrackingController(tinywhoover, k_e, k_phi, k_z, delta)
 	rospy.loginfo('Initialize controller ...')
 	rospy.sleep(5.0)	# ensure that the tf listener has time to receive 5s of data
 	rospy.loginfo('Start trajectory tracking ...')
 	controller.set_start_time()		# set starttime to current time 
-
 
 	while not rospy.is_shutdown():
 		controller.iteration()
